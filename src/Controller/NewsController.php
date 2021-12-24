@@ -3,16 +3,14 @@
 namespace App\Controller;
 
 class NewsController {
-    public function indexAction($id = null)
+    public function indexAction()
     {
-        echo "I am in NewsController indexAction";
-        echo "<br>";
-        echo "My id - " . $id;
+        echo "I am in News Controller indexAction";
     }
 
     public function editAction($id = null)
     {
-        echo "I am in NewsController editAction";
+        echo "I am in News Controller editAction";
         echo "<br>";
         echo "My id - " . $id;
     }

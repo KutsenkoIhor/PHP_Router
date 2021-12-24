@@ -3,10 +3,8 @@
 namespace App\Controller;
 
 class TestController {
-    public function indexAction($id = null)
+    public function indexAction()
     {
-        echo "I am in TestController indexAction";
-        echo "<br>";
-        echo "My id - " . $id;
+        echo "I am in Test Controller indexAction";
     }
 }

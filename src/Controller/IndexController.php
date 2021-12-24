@@ -3,11 +3,9 @@
 namespace App\Controller;
 
 class IndexController {
-    public function indexAction($id = null)
+    public function indexAction()
     {
-        echo "I am in IndexController indexAction";
-        echo "<br>";
-        echo "My id - " . $id;
+        echo "I am in Index Controller indexAction";
     }
 }
 

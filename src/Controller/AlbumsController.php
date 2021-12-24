@@ -3,10 +3,8 @@
 namespace App\Controller;
 
 class AlbumsController {
-    public function indexAction($id = null)
+    public function indexAction()
     {
-        echo "I am in AlbumsController indexAction";
-        echo "<br>";
-        echo "My id - " . $id;
+        echo "I am in Albums Controller indexAction";
     }
 }

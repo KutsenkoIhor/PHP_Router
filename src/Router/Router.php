@@ -10,7 +10,7 @@ use App\Controller\TestController;
 
 class Router
 {
-    public string $url;
+    private string $url;
     private array $uriMap = [
         '/test-uri' => [TestController::class, 'indexAction'],
         '/' => [IndexController::class, 'indexAction'],
@@ -20,6 +20,9 @@ class Router
     ];
     private string $id;
     private string $mask;
+    private array $uriMapWithID = [
+        '/news/edit' => [NewsController::class, 'editAction'],
+    ];
 
     public function __construct($url)
     {
@@ -27,7 +30,7 @@ class Router
         $this->selectIDandMask();
     }
 
-    private function selectIDandMask()
+    private function selectIDandMask(): void
     {
         $arrUrll = explode("/", $this->url);
         $indexLastValue = count($arrUrll) - 1;
@@ -38,28 +41,43 @@ class Router
         $id = $arrUrll[$indexLastValue];
         $maskArr = array_slice($arrUrll, 0, $indexLastValue);
         $mask = implode("/", $maskArr);
-        if ($mask === '') {
-            $mask = '/';
-        }
         $this->id = $id;
         $this->mask = $mask;
-        $this->startTheController();
+        $this->checkONnQueryString();
     }
 
-    private function startTheController()
+    private function checkONnQueryString(): void
+    {
+        $posQueryString = strpos($this->id, '?');
+        if ($this->id[0] === "?") {
+            $this->PageNotFound();
+        } elseif ($posQueryString) {
+            $this->id = substr($this->id, 0, $posQueryString);
+            $this->startTheController();
+        } else {
+            $this->startTheController();
+        }
+    }
+
+    private function startTheController(): void
     {
         if (isset($this->uriMap[$this->url])) {
             [$nameClass, $action] = $this->uriMap[$this->url];
             $controller = new $nameClass();
             $controller ->$action();
-        } elseif (isset($this->uriMap[$this->mask])) {
-            [$nameClass, $action] = $this->uriMap[$this->mask];
+        } elseif (isset($this->uriMapWithID[$this->mask])) {
+            [$nameClass, $action] = $this->uriMapWithID[$this->mask];
             $controller = new $nameClass();
             $controller ->$action($this->id);
         } else {
-            http_response_code(404);
-            echo 'Page not found';
-            die();
+            $this->PageNotFound();
         }
+    }
+
+    private function PageNotFound(): void
+    {
+        http_response_code(404);
+        echo 'Page not found';
+        die();
     }
 }
