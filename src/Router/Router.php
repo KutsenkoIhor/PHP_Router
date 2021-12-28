@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Router;
-require_once 'vendor/autoload.php';
 
 use App\Controller\AlbumsController;
 use App\Controller\IndexController;
@@ -10,68 +9,81 @@ use App\Controller\TestController;
 
 class Router
 {
-    private string $url;
     private array $uriMap = [
-        '/test-uri' => [TestController::class, 'indexAction'],
+        '/test-uri/{cf}' => [TestController::class, 'indexAction'],
         '/' => [IndexController::class, 'indexAction'],
         '/news' => [NewsController::class, 'indexAction'],
-        '/news/edit' => [NewsController::class, 'editAction'],
+        '/news/edit/{id}/{cd}' => [NewsController::class, 'editAction'],
         '/albums' => [AlbumsController::class, 'indexAction'],
     ];
-    private string $id;
-    private string $mask;
-    private array $uriMapWithID = [
-        '/news/edit' => [NewsController::class, 'editAction'],
-    ];
+    private string $url;
 
-    public function __construct($url)
+    public function __construct(string $url)
     {
         $this->url = $url;
-        $this->selectIDandMask();
+        $this->startTheController($url);
     }
 
-    private function selectIDandMask(): void
+    private function startTheController(string $mask, array $id = null): void
     {
-        $arrUrll = explode("/", $this->url);
-        $indexLastValue = count($arrUrll) - 1;
-        $id = $arrUrll[$indexLastValue];
-        if ($id === '') {
-            $indexLastValue = count($arrUrll) - 2;
-        }
-        $id = $arrUrll[$indexLastValue];
-        $maskArr = array_slice($arrUrll, 0, $indexLastValue);
-        $mask = implode("/", $maskArr);
-        $this->id = $id;
-        $this->mask = $mask;
-        $this->checkONnQueryString();
-    }
-
-    private function checkONnQueryString(): void
-    {
-        $posQueryString = strpos($this->id, '?');
-        if ($this->id[0] === "?") {
-            $this->PageNotFound();
-        } elseif ($posQueryString) {
-            $this->id = substr($this->id, 0, $posQueryString);
-            $this->startTheController();
-        } else {
-            $this->startTheController();
-        }
-    }
-
-    private function startTheController(): void
-    {
-        if (isset($this->uriMap[$this->url])) {
-            [$nameClass, $action] = $this->uriMap[$this->url];
+        if (isset($this->uriMap[$mask])) {
+            [$nameClass, $action] = $this->uriMap[$mask];
             $controller = new $nameClass();
-            $controller ->$action();
-        } elseif (isset($this->uriMapWithID[$this->mask])) {
-            [$nameClass, $action] = $this->uriMapWithID[$this->mask];
-            $controller = new $nameClass();
-            $controller ->$action($this->id);
+            $controller->$action($id);
+            die();
         } else {
+            $this->selectUrlMapWithParameters();
+        }
+    }
+
+    private function selectUrlMapWithParameters(): void
+    {
+        $urlMapWithParameters = [];
+        foreach ($this->uriMap as $key => $value) {
+            if (strpos($key, "/{") !== false & strpos($key, "}") !== false) {
+                $maskAndId = explode("/{", $key);
+                $mask = array_shift($maskAndId);
+                foreach ($maskAndId as $keu => $valuee) {
+                    $maskAndId[$keu]  = "{" . $valuee;
+                }
+                $id = $maskAndId;
+                $urlMapWithParameters[$mask] = $id;
+            }
+        }
+        if ($urlMapWithParameters === null) {
+            $this->PageNotFound();
+        } else {
+            $this->selectMaskAndId($urlMapWithParameters);
+        }
+    }
+
+    private function selectMaskAndId(array $urlMapWithParameters): void
+    {
+        $mask = "";
+        foreach ($urlMapWithParameters  as $key => $value) {
+            if (strpos($this->url, $key . "/") !== false) {
+                $mask = $key;
+            } elseif ($this->url === $key) {
+                $mask = $this->url . "/" . implode("/", $value);
+                $this->startTheController($mask);
+            }
+        }
+        if ($mask === "") {
             $this->PageNotFound();
         }
+        $id = substr($this->url, strlen($mask) + 1);
+        $arrId = explode("/", $id);
+        $this->MatchingParameterNames($urlMapWithParameters, $mask, $arrId);
+    }
+
+    private function MatchingParameterNames(array $urlMapWithParameters, string $mask, array $arrid): void
+    {
+        $parametr = [];
+        foreach ($urlMapWithParameters[$mask] as $key => $value) {
+            $parametr[$value] = $arrid[$key];
+        }
+        $maskk = $mask . "/" . implode("/", $urlMapWithParameters[$mask]);
+        $this->startTheController($maskk, $parametr);
     }
 
     private function PageNotFound(): void
