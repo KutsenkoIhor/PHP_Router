@@ -11,7 +11,7 @@ class NewsController {
         print_r($id);
     }
 
-    public function editAction(array $id = null)
+    public function editAction($id = null)
     {
         echo "I am in News Controller editAction";
         echo "<br>";

@@ -10,7 +10,7 @@ use App\Controller\TestController;
 class Router
 {
     private array $uriMap = [
-        '/test-uri/{cf}' => [TestController::class, 'indexAction'],
+        '/test-uri' => [TestController::class, 'indexAction'],
         '/' => [IndexController::class, 'indexAction'],
         '/news' => [NewsController::class, 'indexAction'],
         '/news/edit/{id}/{cd}' => [NewsController::class, 'editAction'],
@@ -38,7 +38,7 @@ class Router
 
     private function selectUrlMapWithParameters(): void
     {
-        $urlMapWithParameters = [];
+        $urlMapWithParameters = null;
         foreach ($this->uriMap as $key => $value) {
             if (strpos($key, "/{") !== false & strpos($key, "}") !== false) {
                 $maskAndId = explode("/{", $key);
@@ -46,8 +46,7 @@ class Router
                 foreach ($maskAndId as $keu => $valuee) {
                     $maskAndId[$keu]  = "{" . $valuee;
                 }
-                $id = $maskAndId;
-                $urlMapWithParameters[$mask] = $id;
+                $urlMapWithParameters[$mask] = $maskAndId;
             }
         }
         if ($urlMapWithParameters === null) {
@@ -59,7 +58,7 @@ class Router
 
     private function selectMaskAndId(array $urlMapWithParameters): void
     {
-        $mask = "";
+        $mask = null;
         foreach ($urlMapWithParameters  as $key => $value) {
             if (strpos($this->url, $key . "/") !== false) {
                 $mask = $key;
@@ -68,7 +67,7 @@ class Router
                 $this->startTheController($mask);
             }
         }
-        if ($mask === "") {
+        if ($mask === null) {
             $this->PageNotFound();
         }
         $id = substr($this->url, strlen($mask) + 1);
